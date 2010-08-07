@@ -8,6 +8,7 @@ module Kernel
 
     if xfile
       Xgem.x_require xfile
+      # TODO check the return value and act accordingly
     elsif s == 'xgem'
       Xgem.path!
     else
@@ -20,9 +21,14 @@ module Xgem
   class << self
     def x_require(s)
       @required ||= []
-      @path.any? { |d| @required << s if require d + s } unless
-        @required.include? s
+
+      @required.include? s or @path.find { |d| begin
+          require d + s  # throws LoadError or succeeds
+          @required << s
+        rescue LoadError # next
+                                               end }  # sometimes ruby s..miles
     end
+
     def path!
       @path ||= []
       xdir = nil
